@@ -2,30 +2,16 @@
 import { AmplifyApiRestResourceStackTemplate } from '@aws-amplify/cli-extensibility-helper';
 
 export function override(resources: AmplifyApiRestResourceStackTemplate) {
-    console.log('500');
-    //console.log(resources.restApi);
-    /*console.log('600');
-    console.log(resources.restApi..restApiId);
-    console.log('700');
-    console.log(resources.restApi.attrRootResourceId);
-    console.log('800');
-    console.log(resources.restApi.body['paths']);*/
-    console.log('800');
-    //resources.restApi.body['definitions'][2]= "clone mode schema here";
-    resources.restApi.addPropertyOverride("Body.definitions", {
-        RequestSchema2: {
-            type: 'object',
-            required: [ 'request' ],
-            properties: { 
-                request : {
-                    type : 'string'
-                }
-            },
-            title: 'Request Schema'
+    resources.restApi.addPropertyOverride("Body",{
+        ...resources.restApi.body,
+        'x-amazon-apigateway-request-validators' : {
+            'Validate body' : {
+              validateRequestParameters : false,
+              validateRequestBody : true
+            }
           }
         }
-    )
-
+    ) 
     
     resources.restApi.addPropertyOverride("Body.definitions", {
         newSchema: {
@@ -137,8 +123,6 @@ export function override(resources: AmplifyApiRestResourceStackTemplate) {
                 } 
             }
         },
-    //})
-    //resources.restApi.addPropertyOverride("Body.definitions", {
         cloneSchema: {
             $schema: 'http://json-schema.org/draft-07/schema',
             type: 'object',
@@ -218,21 +202,10 @@ export function override(resources: AmplifyApiRestResourceStackTemplate) {
         }
     })
 
-
-    //{ '$ref': '#/definitions/RequestSchema' }
-
-    //resources.restApi.addPropertyOverride("Body.definitions", {
-    
-
-
-    //resources.restApi.body.paths['/items'].options['x-amazon-apigateway-integration'].responses.default.responseParameters['method.response.header.Access-Control-Allow-Origin'] = { 'Fn::Sub': "'https://${ApiId}.execute-api.${AWS::Region}.amazonaws.com'" };
- 
-    //resources.restApi.body['definitions']['cloneModelSchema']
-    //console.log(resources.restApi.body['definitions']);
     const cloneModelPath="/CloneModel/{ModelArn}";
     const newModelPath="/CreateModel";
     console.log(resources.restApi.body.paths);
-    //console.log(resources.restApi.body['definitions']['RequestSchema']['properties']['request']);
+
     console.log(resources.restApi.body.paths['/CloneModel/{ModelArn}']['x-amazon-apigateway-any-method']);
 
     console.log(resources.restApi.body.paths['/CloneModel/{ModelArn}']['x-amazon-apigateway-any-method']['parameters'][0]['schema']);
@@ -246,6 +219,10 @@ export function override(resources: AmplifyApiRestResourceStackTemplate) {
         },
       ]
     )
+    resources.restApi.addPropertyOverride(`Body.paths.${cloneModelPath}.x-amazon-apigateway-any-method`,{
+        ...resources.restApi.body.paths[cloneModelPath]["x-amazon-apigateway-any-method"],
+        'x-amazon-apigateway-request-validator' : "Validate body"}
+    )
 
     resources.restApi.addPropertyOverride(`Body.paths.${newModelPath}.x-amazon-apigateway-any-method.parameters`,[
         {
@@ -256,6 +233,11 @@ export function override(resources: AmplifyApiRestResourceStackTemplate) {
         },
       ]
     )
+    resources.restApi.addPropertyOverride(`Body.paths.${newModelPath}.x-amazon-apigateway-any-method`,{
+        ...resources.restApi.body.paths[newModelPath]["x-amazon-apigateway-any-method"],
+        'x-amazon-apigateway-request-validator' : "Validate body"}
+    )
+
 
     //resources.restApi.body.paths['/CreateModel']['x-amazon-apigateway-any-method']['parameters'][0]['schema']="{'key'='value'}";
     //console.log(resources.restApi.body.paths['/CreateModel']['x-amazon-apigateway-any-method']['parameters'][0]['schema']);
